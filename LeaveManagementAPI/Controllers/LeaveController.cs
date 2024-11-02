@@ -85,20 +85,7 @@ namespace LeaveManagementAPI.Controllers
                     return BadRequest("Invalid Employee ID");
                 }
 
-                var numberOfLeaveDays = (leaveDTO.EndDate - leaveDTO.StartDate).Days + 1;
 
-                if (numberOfLeaveDays == 1 && leaveDTO.StartDate.DayOfWeek == DayOfWeek.Friday)
-                {
-                    numberOfLeaveDays += 2;
-                }
-
-                if (user.MaxDaysAllowed < numberOfLeaveDays)
-                {
-                    return BadRequest("Not enough leave days available");
-                }
-
-                user.MaxDaysAllowed -= numberOfLeaveDays;
-                await userRepository.UpdateUserAsync(user);
 
                 var leave = mapper.Map<Leave>(leaveDTO);
                 var addedLeave = await leaveRepository.AddLeaveAsync(leave);
@@ -112,6 +99,7 @@ namespace LeaveManagementAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error adding data to the database");
             }
         }
+
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteLeave(int id)
@@ -149,19 +137,79 @@ namespace LeaveManagementAPI.Controllers
                 {
                     return BadRequest("Only pending leaves can be approved");
                 }
-                leave.Status = LeaveStatus.Approved;
-                await leaveRepository.UpdateLeaveAsync(leave);
 
-                //mta3 il notification ken mech tzidha mba3ed
-                // await notificationService.NotifyLeaveApproval(leave);
+                var user = await userRepository.GetUserByIdAsync(leave.EmployeeId);
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
+
+                var numberOfLeaveDays = (leave.EndDate - leave.StartDate).Days + 1;
+
+                if (numberOfLeaveDays == 1 && leave.StartDate.DayOfWeek == DayOfWeek.Friday)
+                {
+                    numberOfLeaveDays += 2;
+                }
+
+              
+                leave.Status = LeaveStatus.Approved;
+                user.MaxDaysAllowed -= numberOfLeaveDays; 
+                await userRepository.UpdateUserAsync(user); 
+                await leaveRepository.UpdateLeaveAsync(leave); 
 
                 return NoContent();
             }
-            catch (Exception )
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error approving leave");
             }
         }
+
+
+
+
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<LeaveDTO>> UpdateLeave(int id, LeaveDTO leaveDTO)
+        {
+            try
+            {
+                if (id != leaveDTO.Id)
+                {
+                    return BadRequest("Leave ID mismatch");
+                }
+
+                var existingLeave = await leaveRepository.GetLeaveByIdAsync(id);
+                if (existingLeave == null)
+                {
+                    return NotFound($"Leave with ID {id} not found");
+                }
+
+                if (existingLeave.Status != LeaveStatus.Pending)
+                {
+                    return BadRequest("Only pending leaves can be updated");
+                }
+
+                var user = await userRepository.GetUserByIdAsync(leaveDTO.EmployeeId);
+                if (user == null)
+                {
+                    return BadRequest("Invalid Employee ID");
+                }
+
+                mapper.Map(leaveDTO, existingLeave);
+                var updatedLeave = await leaveRepository.UpdateLeaveAsync(existingLeave);
+
+                var updatedLeaveDTO = mapper.Map<LeaveDTO>(updatedLeave);
+                return Ok(updatedLeaveDTO);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error updating leave: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating leave");
+            }
+        }
+
+
 
         [HttpPost("reject/{id:int}")]
         public async Task<ActionResult> RejectLeave(int id)

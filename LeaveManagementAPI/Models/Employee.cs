@@ -13,6 +13,5 @@ namespace LeaveManagementAPI.Models
         [Required]
         public string position { get; set; }    
 
-
     }
 }

@@ -44,20 +44,15 @@ namespace LeaveManagementAPI.Models.Repositories
 
         }
 
-       /* public async Task<User> AddUserAsync(User user)
+        public async Task DeleteEmployeeAsync(int id)
         {
-            try
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee != null)
             {
-                _context.Users.Add(user);
+                _context.Employees.Remove(employee);
                 await _context.SaveChangesAsync();
-                return user;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error adding user: {ex.Message}\n{ex.StackTrace}");
-                throw;
-            }
-        }*/
+        }
 
         public async Task<bool> DeleteUserAsync(int id)
         {

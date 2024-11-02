@@ -194,6 +194,28 @@ namespace LeaveManagementAPI.Controllers
         }
 
 
+
+        [HttpDelete("employee/{id:int}")]
+        public async Task<ActionResult> DeleteEmployee(int id)
+        {
+            try
+            {
+                var employeeToDelete = await userRepository.GetEmployeeByIdAsync(id);
+                if (employeeToDelete == null)
+                    return NotFound($"Employee with ID = {id} not found");
+
+                await userRepository.DeleteEmployeeAsync(id);
+                return Ok($"Employee with ID = {id} deleted");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error deleting employee: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting data from the database");
+            }
+        }
+
+
+
         [HttpPut("update-employee/{id}")]
         public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto employeeUpdateDTO)
         {
@@ -222,17 +244,14 @@ namespace LeaveManagementAPI.Controllers
                     existingEmployee.Password = BCrypt.Net.BCrypt.HashPassword(employeeUpdateDTO.Password);
                 }
 
-                
                 await userRepository.UpdateEmployeeAsync(existingEmployee);
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error updating data in the database.");
             }
         }
-
-
 
 
         [HttpPost("login")]
@@ -322,8 +341,6 @@ namespace LeaveManagementAPI.Controllers
                 {
                     return NotFound("Admin not found.");
                 }
-
-               
                 existingAdmin.UserName = adminUpdateDTO.UserName;
                 existingAdmin.Email = adminUpdateDTO.Email;
 
@@ -342,7 +359,6 @@ namespace LeaveManagementAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error updating admin in the database.");
             }
         }
-
 
     }
 }

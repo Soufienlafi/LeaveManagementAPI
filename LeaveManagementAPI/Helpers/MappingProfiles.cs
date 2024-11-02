@@ -13,8 +13,8 @@ namespace LeaveManagementAPI.Helpers
             CreateMap<Employee, EmployeeDTO>();
             CreateMap<Admin, AdminDTO>();
 
-            CreateMap<Leave, LeaveDTO>().ReverseMap(); // hedhi bech ma ta3melch   CreateMap<LeaveDTO, Leave>() hehehe
-            CreateMap<Leave, LeaveDTO>();
+            CreateMap<Leave, LeaveDTO>().ReverseMap();
+
             CreateMap<UserCreateDTO, User>();
             CreateMap<EmployeeCreateDTO, Employee>();
             CreateMap<AdminCreateDTO, Admin>();
@@ -22,7 +22,7 @@ namespace LeaveManagementAPI.Helpers
             CreateMap<UserUpdateDTO, User>();
 
             CreateMap<UpdateAdminDto, Admin>()
-           .ForMember(dest => dest.Password, opt => opt.Condition(src => !string.IsNullOrEmpty(src.Password)));
+                .ForMember(dest => dest.Password, opt => opt.Condition(src => !string.IsNullOrEmpty(src.Password)));
         }
     }
 }

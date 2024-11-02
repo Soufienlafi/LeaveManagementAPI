@@ -54,13 +54,9 @@ namespace LeaveManagementAPI.Models.Repositories
 
         public async Task<Leave> UpdateLeaveAsync(Leave leave)
         {
-            var existingLeave = await _context.Leaves.FindAsync(leave.Id);
-            if (existingLeave == null)
-                return null;
-
-            _context.Entry(existingLeave).CurrentValues.SetValues(leave);
+            _context.Leaves.Update(leave);
             await _context.SaveChangesAsync();
-            return existingLeave;
+            return leave;
         }
     }
 }

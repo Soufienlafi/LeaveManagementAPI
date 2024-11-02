@@ -13,6 +13,7 @@ namespace LeaveManagementAPI.Models.Repositories
         Task<User> GetUserByNameAsync(string name);
         Task<User> UpdateUserAsync(User user);  
         Task<bool> DeleteUserAsync(int id);
+        Task DeleteEmployeeAsync(int id);
         Task<Employee> AddEmployeeAsync(Employee employee);
         Task<Employee> GetEmployeeByIdAsync(int id);
         Task<Admin> AddAdminAsync(Admin admin);
